@@ -19,7 +19,7 @@ import { initialState } from "./initialState";
 
 SplashScreen.preventAutoHideAsync();
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const [isShowKeybord, setIsShowKeybord] = useState(false);
   const [state, setState] = useState(initialState);
   const [fontsLoaded] = useFonts({
@@ -109,11 +109,27 @@ export default function LoginScreen() {
                 Увійти
               </Text>
             </TouchableOpacity>
-            <View style={{ marginBottom: isShowKeybord ? -115 : 144 }}>
-              <Text style={{ textAlign: "center", fontFamily: "Roboto" }}>
-                Немає акаунта? Зареєструватися
+            <TouchableOpacity
+              style={{
+                marginBottom: isShowKeybord ? -115 : 144,
+                alignSelf: "center",
+              }}
+              onPress={() => navigation.navigate("Registration")}
+            >
+              <Text>
+                Немає акаунта?{" "}
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontFamily: "Roboto",
+                    color: "#1B4371",
+                    marginLeft: 5,
+                  }}
+                >
+                  Зареєструватися
+                </Text>
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </ImageBackground>
       </KeyboardAvoidingView>
