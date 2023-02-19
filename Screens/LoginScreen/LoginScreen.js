@@ -12,7 +12,6 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Keyboard,
-  Image,
 } from "react-native";
 
 import { initialState } from "./initialState";
