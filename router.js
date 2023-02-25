@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
-
+import { AntDesign } from "@expo/vector-icons";
 import { TouchableOpacity, View } from "react-native";
 import RegistrationScreen from "./Screens/RegistrationScreen";
 import LoginScreen from "./Screens/LoginScreen/LoginScreen";
@@ -49,7 +49,7 @@ export const useRoute = (isAuth) => {
             />
           ),
         }}
-        name="Posts"
+        name="Публікації"
         component={PostsScreen}
       />
       <MainTab.Screen
@@ -57,8 +57,16 @@ export const useRoute = (isAuth) => {
           tabBarIcon: ({ focused, size, color }) => (
             <SimpleLineIcons name="plus" size={24} color={color} />
           ),
+          headerLeft: ({ focused, size, color }) => (
+            <AntDesign
+              style={{ marginLeft: 20 }}
+              name="arrowleft"
+              size={24}
+              color="black"
+            />
+          ),
         }}
-        name="Create"
+        name="Створити публікацію"
         component={CreatePostsScreen}
       />
       <MainTab.Screen
@@ -67,7 +75,7 @@ export const useRoute = (isAuth) => {
             <Ionicons name="md-person-outline" size={24} color={color} />
           ),
         }}
-        name="Profile"
+        name="Профіль"
         component={ProfileScreen}
       />
     </MainTab.Navigator>

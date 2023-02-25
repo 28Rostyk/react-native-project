@@ -22,6 +22,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RegistrationScreen({ navigation }) {
   const [isShowKeybord, setIsShowKeybord] = useState(false);
   const [state, setState] = useState(initialState);
+  const [focused, setFocused] = useState("");
   const [fontsLoaded] = useFonts({
     Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
   });
@@ -80,10 +81,19 @@ export default function RegistrationScreen({ navigation }) {
             <View>
               <TextInput
                 placeholder="Логін"
-                style={{ ...styles.input, fontFamily: "Roboto" }}
+                style={{
+                  ...styles.input,
+                  fontFamily: "Roboto",
+                  borderWidth: 1,
+                  borderColor: focused === "login" ? "#FF6C00" : "#FFF",
+                }}
                 value={state.login}
                 onFocus={() => {
                   setIsShowKeybord(true);
+                  setFocused("login");
+                }}
+                onBlur={() => {
+                  setFocused("");
                 }}
                 onChangeText={(value) =>
                   setState((prevState) => ({ ...prevState, login: value }))
@@ -94,9 +104,18 @@ export default function RegistrationScreen({ navigation }) {
               <TextInput
                 placeholder="Адрес електронної пошти"
                 value={state.email}
-                style={{ ...styles.input, fontFamily: "Roboto" }}
+                style={{
+                  ...styles.input,
+                  fontFamily: "Roboto",
+                  borderWidth: 1,
+                  borderColor: focused === "email" ? "#FF6C00" : "#FFF",
+                }}
                 onFocus={() => {
                   setIsShowKeybord(true);
+                  setFocused("email");
+                }}
+                onBlur={() => {
+                  setFocused("");
                 }}
                 onChangeText={(value) =>
                   setState((prevState) => ({ ...prevState, email: value }))
@@ -108,9 +127,18 @@ export default function RegistrationScreen({ navigation }) {
                 secureTextEntry={true}
                 placeholder="Пароль"
                 value={state.password}
-                style={{ ...styles.input, fontFamily: "Roboto" }}
+                style={{
+                  ...styles.input,
+                  fontFamily: "Roboto",
+                  borderWidth: 1,
+                  borderColor: focused === "password" ? "#FF6C00" : "#FFF",
+                }}
                 onFocus={() => {
                   setIsShowKeybord(true);
+                  setFocused("password");
+                }}
+                onBlur={() => {
+                  setFocused("");
                 }}
                 onChangeText={(value) =>
                   setState((prevState) => ({ ...prevState, password: value }))
