@@ -1,17 +1,32 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  TextInput,
+} from "react-native";
 import { Camera } from "expo-camera";
 import { Fontisto } from "@expo/vector-icons";
-import * as MediaLibrary from "expo-media-library";
 
-const CreatePostsScreen = () => {
+import * as Location from "expo-location";
+
+const CreatePostsScreen = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState("");
   const takePhoto = async () => {
     const photo = await camera.takePictureAsync();
+    const location = await Location.getCurrentPositionAsync();
+    console.log(location);
     setPhoto(photo.uri);
-    console.log(camera.takePictureAsync());
+  };
+
+  const sendPhoto = () => {
+    console.log(navigation);
+    navigation.navigate("Публікації", { photo });
+    setPhoto("");
   };
 
   return (
@@ -38,6 +53,20 @@ const CreatePostsScreen = () => {
       <View>
         <Text style={styles.loadFoto}>Завантажити фото</Text>
       </View>
+
+      <View style={styles.photoDescriptionContainer}>
+        <TextInput style={styles.photoDescription} placeholder="Назва..." />
+      </View>
+
+      <View style={styles.photoLocationContainer}>
+        <TextInput style={styles.photoLocation} placeholder="Місцевість..." />
+      </View>
+
+      <View style={styles.btnContainer}>
+        <TouchableOpacity style={styles.sendBtn} onPress={sendPhoto}>
+          <Text style={styles.btnText}>Опублікувати</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -54,7 +83,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderWidth: 1,
     borderColor: "#E8E8E8",
-    borderRadius: 8,
     backgroundColor: "#F6F6F6",
     justifyContent: "center",
     alignItems: "center",
@@ -81,5 +109,48 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     fontSize: 16,
     color: "#BDBDBD",
+  },
+  photoDescriptionContainer: {
+    marginHorizontal: 16,
+    marginTop: 32,
+  },
+
+  photoDescription: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8E8E8",
+    paddingBottom: 15,
+    paddingTop: 15,
+  },
+
+  btnContainer: {
+    marginTop: 32,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  photoLocationContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+
+  photoLocation: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8E8E8",
+    paddingBottom: 15,
+    paddingTop: 15,
+  },
+
+  sendBtn: {
+    width: 343,
+    height: 53,
+    borderRadius: 100,
+    backgroundColor: "#FF6C00",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  btnText: {
+    color: "#FFF",
+    fontSize: 16,
   },
 });

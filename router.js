@@ -6,12 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
-import { TouchableOpacity, View } from "react-native";
-import RegistrationScreen from "./Screens/RegistrationScreen";
-import LoginScreen from "./Screens/LoginScreen/LoginScreen";
-import PostsScreen from "./Screens/Home/PostsScreen";
+// import { TouchableOpacity, View } from "react-native";
+import RegistrationScreen from "./Screens/auth/RegistrationScreen/RegistrationScreen";
+import LoginScreen from "./Screens/auth/LoginScreen/LoginScreen";
+import PostScreens from "./Screens/Home/PostScreens";
+import DefaultScreen from "./Screens/Home/DefaultScreen/DefaultScreen";
 import CreatePostsScreen from "./Screens/Home/CreatePostsScreen";
 import ProfileScreen from "./Screens/Home/ProfileScreen";
+// import MapScreen from "./Screens/Home/DefaultScreen/MapScreen";
+// import CommentsScreen from "./Screens/Home/DefaultScreen/CommentsScreen";
 
 const AuthStack = createStackNavigator();
 const MainTab = createBottomTabNavigator();
@@ -40,18 +43,28 @@ export const useRoute = (isAuth) => {
           tabBarIcon: ({ focused, size, color }) => (
             <Ionicons name="grid-outline" size={24} color={color} />
           ),
-          headerRight: ({ focused, size, color }) => (
-            <MaterialIcons
-              style={{ marginRight: 10 }}
-              name="logout"
-              size={24}
-              color="#BDBDBD"
-            />
-          ),
+          headerShown: false,
         }}
-        name="Публікації"
-        component={PostsScreen}
+        name="PostScreens"
+        component={PostScreens}
       />
+
+      {/* <MainTab.Screen
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        name="Карта"
+        component={MapScreen}
+      />
+      <MainTab.Screen
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
+        name="Коментарії"
+        component={CommentsScreen}
+      /> */}
       <MainTab.Screen
         options={{
           tabBarIcon: ({ focused, size, color }) => (

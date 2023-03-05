@@ -12,18 +12,19 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Keyboard,
+  Image,
 } from "react-native";
 
 import { initialState } from "./initialState";
 
 SplashScreen.preventAutoHideAsync();
 
-export default function LoginScreen({ navigation }) {
+export default function RegistrationScreen({ navigation }) {
   const [isShowKeybord, setIsShowKeybord] = useState(false);
   const [state, setState] = useState(initialState);
   const [focused, setFocused] = useState("");
   const [fontsLoaded] = useFonts({
-    Roboto: require("../../assets/fonts/Roboto-Regular.ttf"),
+    Roboto: require("../../../assets/fonts/Roboto-Regular.ttf"),
   });
 
   const onLayoutRootView = useCallback(async () => {
@@ -47,7 +48,7 @@ export default function LoginScreen({ navigation }) {
     console.log(state);
     setState(initialState);
   };
-  console.log(focused);
+
   return (
     <TouchableWithoutFeedback onPress={touchableHide}>
       <KeyboardAvoidingView
@@ -57,9 +58,15 @@ export default function LoginScreen({ navigation }) {
       >
         <ImageBackground
           style={styles.image}
-          source={require("../../assets/image/PhotoBG.png")}
+          source={require("../../../assets/image/PhotoBG.png")}
         >
           <View style={styles.formContainer}>
+            <View style={styles.imgContainer}>
+              <Image
+                style={{ borderRadius: 16 }}
+                source={require("../../../assets/image/userImg.jpg")}
+              />
+            </View>
             <View>
               <Text
                 style={{
@@ -68,8 +75,30 @@ export default function LoginScreen({ navigation }) {
                   fontSize: 30,
                 }}
               >
-                Увійти
+                Регістрація
               </Text>
+            </View>
+            <View>
+              <TextInput
+                placeholder="Логін"
+                style={{
+                  ...styles.input,
+                  fontFamily: "Roboto",
+                  borderWidth: 1,
+                  borderColor: focused === "login" ? "#FF6C00" : "#FFF",
+                }}
+                value={state.login}
+                onFocus={() => {
+                  setIsShowKeybord(true);
+                  setFocused("login");
+                }}
+                onBlur={() => {
+                  setFocused("");
+                }}
+                onChangeText={(value) =>
+                  setState((prevState) => ({ ...prevState, login: value }))
+                }
+              />
             </View>
             <View style={{ marginTop: 16 }}>
               <TextInput
@@ -124,27 +153,26 @@ export default function LoginScreen({ navigation }) {
               <Text
                 style={{ color: "#FFFFFF", fontFamily: "Roboto", fontSize: 16 }}
               >
-                Увійти
+                Зареєструватися
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{
-                marginBottom: isShowKeybord ? -115 : 144,
+                marginBottom: isShowKeybord ? -115 : 78,
                 alignSelf: "center",
               }}
-              onPress={() => navigation.navigate("Registration")}
+              onPress={() => navigation.navigate("Login")}
             >
               <Text>
-                Немає акаунта?{" "}
+                Вже є акаунт?{" "}
                 <Text
                   style={{
                     textAlign: "center",
                     fontFamily: "Roboto",
                     color: "#1B4371",
-                    marginLeft: 5,
                   }}
                 >
-                  Зареєструватися
+                  Увійти
                 </Text>
               </Text>
             </TouchableOpacity>
@@ -173,9 +201,20 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 25,
   },
 
+  imgContainer: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    top: -60,
+    left: 128,
+    backgroundColor: "#F6F6F6",
+    borderRadius: 16,
+    zIndex: 10,
+  },
+
   formTitle: {
     textAlign: "center",
-    marginTop: 32,
+    marginTop: 92,
     marginBottom: 32,
     color: "#212121",
     fontWeight: "bold",
