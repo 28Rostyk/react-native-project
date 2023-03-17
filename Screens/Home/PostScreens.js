@@ -4,9 +4,14 @@ import DefaultScreen from "./DefaultScreen/DefaultScreen";
 import MapScreen from "./DefaultScreen/MapScreen";
 import CommentsScreen from "./DefaultScreen/CommentsScreen";
 import { MaterialIcons } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native";
+import { useDispatch } from "react-redux";
+import { authSignOutUser } from "../../redux/auth/auth-operations";
+
 const NestedScreen = createStackNavigator();
 
 const PostScreens = () => {
+  const dispatch = useDispatch();
   return (
     <NestedScreen.Navigator>
       <NestedScreen.Screen
@@ -14,12 +19,14 @@ const PostScreens = () => {
         component={DefaultScreen}
         options={{
           headerRight: ({ focused, size, color }) => (
-            <MaterialIcons
-              style={{ marginRight: 10 }}
-              name="logout"
-              size={24}
-              color="#BDBDBD"
-            />
+            <TouchableOpacity onPress={() => dispatch(authSignOutUser())}>
+              <MaterialIcons
+                style={{ marginRight: 10 }}
+                name="logout"
+                size={24}
+                color="#BDBDBD"
+              />
+            </TouchableOpacity>
           ),
         }}
       />

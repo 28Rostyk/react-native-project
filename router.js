@@ -1,25 +1,27 @@
 import React from "react";
-
+import { useDispatch } from "react-redux";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
-// import { TouchableOpacity, View } from "react-native";
 import RegistrationScreen from "./Screens/auth/RegistrationScreen/RegistrationScreen";
 import LoginScreen from "./Screens/auth/LoginScreen/LoginScreen";
 import PostScreens from "./Screens/Home/PostScreens";
-import DefaultScreen from "./Screens/Home/DefaultScreen/DefaultScreen";
+
 import CreatePostsScreen from "./Screens/Home/CreatePostsScreen";
 import ProfileScreen from "./Screens/Home/ProfileScreen";
-// import MapScreen from "./Screens/Home/DefaultScreen/MapScreen";
-// import CommentsScreen from "./Screens/Home/DefaultScreen/CommentsScreen";
+import { TouchableOpacity } from "react-native";
+
+import { authSignOutUser } from "./redux/auth/auth-operations";
 
 const AuthStack = createStackNavigator();
 const MainTab = createBottomTabNavigator();
 
 export const useRoute = (isAuth) => {
+  const dispatch = useDispatch();
+
   if (!isAuth) {
     return (
       <AuthStack.Navigator>
@@ -49,22 +51,6 @@ export const useRoute = (isAuth) => {
         component={PostScreens}
       />
 
-      {/* <MainTab.Screen
-        options={{
-          tabBarButton: () => null,
-          tabBarVisible: false,
-        }}
-        name="Карта"
-        component={MapScreen}
-      />
-      <MainTab.Screen
-        options={{
-          tabBarButton: () => null,
-          tabBarVisible: false,
-        }}
-        name="Коментарії"
-        component={CommentsScreen}
-      /> */}
       <MainTab.Screen
         options={{
           tabBarIcon: ({ focused, size, color }) => (
@@ -86,6 +72,16 @@ export const useRoute = (isAuth) => {
         options={{
           tabBarIcon: ({ focused, size, color }) => (
             <Ionicons name="md-person-outline" size={24} color={color} />
+          ),
+          headerRight: ({ focused, size, color }) => (
+            <TouchableOpacity onPress={() => dispatch(authSignOutUser())}>
+              <MaterialIcons
+                style={{ marginRight: 10 }}
+                name="logout"
+                size={24}
+                color="#BDBDBD"
+              />
+            </TouchableOpacity>
           ),
         }}
         name="Профіль"

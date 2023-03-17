@@ -13,20 +13,41 @@ import { Fontisto } from "@expo/vector-icons";
 
 import * as Location from "expo-location";
 
+import {
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+  uploadBytes,
+} from "firebase/storage";
+import { collection, addDoc } from "firebase/firestore";
+
+import { storage } from "../../firebase/config";
+import db from "../../firebase/config";
+
 const CreatePostsScreen = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState("");
   const takePhoto = async () => {
     const photo = await camera.takePictureAsync();
     const location = await Location.getCurrentPositionAsync();
-    console.log(location);
+
     setPhoto(photo.uri);
   };
 
   const sendPhoto = () => {
-    console.log(navigation);
+    uploadPhotoToServer();
     navigation.navigate("Публікації", { photo });
-    setPhoto("");
+
+    // setPhoto("");
+  };
+
+  const uploadPhotoToServer = async () => {
+    const response = await fetch(photo);
+    const file = await response.blob();
+
+    const uniquePostId = Date.now().toString();
+    const data = await db.storage().ref(`postImage/${uniquePostId}`).put(file);
+    console.log("data:", data);
   };
 
   return (
@@ -37,8 +58,8 @@ const CreatePostsScreen = ({ navigation }) => {
             <Image
               source={{ uri: photo }}
               style={{
-                height: 239,
-                width: 343,
+                height: 100,
+                width: 100,
                 borderWidth: 1,
                 borderColor: "#F6F6F6",
                 borderRadius: 8,

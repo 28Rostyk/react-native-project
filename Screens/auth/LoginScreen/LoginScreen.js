@@ -14,6 +14,9 @@ import {
   Keyboard,
 } from "react-native";
 
+import { useDispatch } from "react-redux";
+import { authSignInUser } from "../../../redux/auth/auth-operations";
+
 import { initialState } from "./initialState";
 
 SplashScreen.preventAutoHideAsync();
@@ -25,6 +28,8 @@ export default function LoginScreen({ navigation }) {
   const [fontsLoaded] = useFonts({
     Roboto: require("../../../assets/fonts/Roboto-Regular.ttf"),
   });
+
+  const dispatch = useDispatch();
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
@@ -41,10 +46,10 @@ export default function LoginScreen({ navigation }) {
     setIsShowKeybord(false);
   };
 
-  const keyboardHide = () => {
+  const handleSubmit = () => {
     Keyboard.dismiss();
     setIsShowKeybord(false);
-    console.log(state);
+    dispatch(authSignInUser(state));
     setState(initialState);
   };
 
@@ -119,7 +124,7 @@ export default function LoginScreen({ navigation }) {
             <TouchableOpacity
               style={styles.formBtn}
               activeOpacity={0.8}
-              onPress={keyboardHide}
+              onPress={handleSubmit}
             >
               <Text
                 style={{ color: "#FFFFFF", fontFamily: "Roboto", fontSize: 16 }}

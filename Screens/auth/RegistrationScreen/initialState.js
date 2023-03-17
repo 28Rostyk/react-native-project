@@ -1,5 +1,5 @@
 export const initialState = {
-  login: "",
+  nickname: "",
   email: "",
   password: "",
 };

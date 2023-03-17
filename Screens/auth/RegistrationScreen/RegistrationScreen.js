@@ -15,6 +15,9 @@ import {
   Image,
 } from "react-native";
 
+import { useDispatch } from "react-redux";
+import { authSignUpUser } from "../../../redux/auth/auth-operations";
+
 import { initialState } from "./initialState";
 
 SplashScreen.preventAutoHideAsync();
@@ -26,6 +29,7 @@ export default function RegistrationScreen({ navigation }) {
   const [fontsLoaded] = useFonts({
     Roboto: require("../../../assets/fonts/Roboto-Regular.ttf"),
   });
+  const dispatch = useDispatch();
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
@@ -42,10 +46,11 @@ export default function RegistrationScreen({ navigation }) {
     setIsShowKeybord(false);
   };
 
-  const keyboardHide = () => {
+  const handleSubmit = () => {
     Keyboard.dismiss();
     setIsShowKeybord(false);
-    console.log(state);
+    // console.log(state);
+    dispatch(authSignUpUser(state));
     setState(initialState);
   };
 
@@ -87,7 +92,7 @@ export default function RegistrationScreen({ navigation }) {
                   borderWidth: 1,
                   borderColor: focused === "login" ? "#FF6C00" : "#FFF",
                 }}
-                value={state.login}
+                value={state.nickname}
                 onFocus={() => {
                   setIsShowKeybord(true);
                   setFocused("login");
@@ -96,7 +101,7 @@ export default function RegistrationScreen({ navigation }) {
                   setFocused("");
                 }}
                 onChangeText={(value) =>
-                  setState((prevState) => ({ ...prevState, login: value }))
+                  setState((prevState) => ({ ...prevState, nickname: value }))
                 }
               />
             </View>
@@ -148,7 +153,7 @@ export default function RegistrationScreen({ navigation }) {
             <TouchableOpacity
               style={styles.formBtn}
               activeOpacity={0.8}
-              onPress={keyboardHide}
+              onPress={handleSubmit}
             >
               <Text
                 style={{ color: "#FFFFFF", fontFamily: "Roboto", fontSize: 16 }}
