@@ -11,42 +11,30 @@ import {
 import { EvilIcons } from "@expo/vector-icons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 
-import { collection, doc, getDocs, onSnapshot } from "firebase/firestore";
-import { db } from "../../../firebase/config";
 import { auth } from "../../../firebase/config";
 import { useSelector } from "react-redux";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 const DefaultScreen = ({ route, navigation }) => {
   const [posts, setPosts] = useState([]);
-  // const [postId, setPostId] = useState("");
-  const [allComents, setAllComments] = useState([]);
   const { userId, nickName, userBgImage } = useSelector((state) => state.auth);
-  console.log(userBgImage);
-  console.log(posts);
-  // console.log(postId);
-  console.log(allComents);
 
   const getAllPosts = async () => {
-    await onSnapshot(collection(db, "posts"), (data) => {
-      setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-      // setPostId(data.docs.map((doc) => doc.id));
+    const db = getDatabase();
+    const starCountRef = await ref(db, "posts/");
+
+    onValue(starCountRef, (snapshot) => {
+      const objectPosts = snapshot.val();
+      if (!objectPosts) {
+        return;
+      }
+      const allPostsFromServer = Object.values(objectPosts);
+      setPosts(allPostsFromServer);
     });
   };
 
-  // const getAllComments = async () => {
-  //   await onSnapshot(
-  //     collection(db, "posts", `${postId}`, "comments"),
-  //     (data) => {
-  //       setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-  //     }
-  //   );
-  // };
-
   useEffect(() => {
     getAllPosts();
-    // if (postId) {
-    //   getAllComments();
-    // }
   }, []);
 
   return (
@@ -67,10 +55,12 @@ const DefaultScreen = ({ route, navigation }) => {
       </View>
 
       <FlatList
+        keyExtractor={(item, indx) => {
+          return indx.toString();
+        }}
         data={posts}
-        keyExtractor={(item, indx) => indx.toString()}
         renderItem={({ item }) => (
-          <>
+          <View>
             <View style={styles.postImageContainer}>
               <Image style={styles.postImage} source={{ uri: item.photo }} />
             </View>
@@ -92,14 +82,14 @@ const DefaultScreen = ({ route, navigation }) => {
                 style={{ flexDirection: "row", alignItems: "center" }}
                 onPress={() =>
                   navigation.navigate("Коментарії", {
-                    postId: item.id,
+                    postId: item.postId,
                     photoUri: item.photo,
                   })
                 }
               >
                 <EvilIcons name="comment" size={30} color="#BDBDBD" />
                 <Text style={{ marginLeft: 8, color: "#BDBDBD", fontSize: 16 }}>
-                  0
+                  {item.comments ? Object.values(item.comments).length : "0"}
                 </Text>
               </TouchableOpacity>
 
@@ -126,7 +116,7 @@ const DefaultScreen = ({ route, navigation }) => {
                 </Text>
               </TouchableOpacity>
             </View>
-          </>
+          </View>
         )}
       />
     </View>

@@ -9,22 +9,11 @@ import {
   Keyboard,
   Image,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
-import { db } from "../../../firebase/config";
 
-import {
-  doc,
-  setDoc,
-  onSnapshot,
-  getDoc,
-  collection,
-} from "firebase/firestore";
-
-import { customAlphabet } from "nanoid/non-secure";
-const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 10);
 import date from "date-and-time";
 import { AntDesign } from "@expo/vector-icons";
+import { getDatabase, ref, set, onValue } from "firebase/database";
 
 const CommentsScreen = ({ route }) => {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
@@ -32,7 +21,6 @@ const CommentsScreen = ({ route }) => {
   const [allComents, setAllComments] = useState([]);
 
   const { postId, photoUri } = route.params;
-  console.log(route.params);
   const { nickName, userBgImage } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -40,9 +28,11 @@ const CommentsScreen = ({ route }) => {
   }, []);
 
   const createComment = async () => {
+    const db = getDatabase();
+    const commentId = Date.now().toString();
     const now = new Date();
     const commentDate = date.format(now, "YYYY.MM.DD HH:mm:ss");
-    await setDoc(doc(db, "posts", `${postId}`, "comments", nanoid()), {
+    set(ref(db, "posts/" + postId + "/comments/" + commentId), {
       postId,
       comment,
       commentDate,
@@ -51,12 +41,17 @@ const CommentsScreen = ({ route }) => {
   };
 
   const getAllComments = async () => {
-    const unsubscribe = onSnapshot(
-      collection(db, "posts", `${postId}`, "comments"),
-      (data) => {
-        setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    const db = getDatabase();
+    const starCountRef = await ref(db, "posts/" + postId + "/comments");
+
+    onValue(starCountRef, (snapshot) => {
+      const objectComments = snapshot.val();
+      if (!objectComments) {
+        return;
       }
-    );
+      const allCommentsFromServer = Object.values(objectComments);
+      setAllComments(allCommentsFromServer);
+    });
   };
 
   return (
@@ -65,7 +60,9 @@ const CommentsScreen = ({ route }) => {
 
       <FlatList
         data={allComents}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => {
+          return index.toString();
+        }}
         renderItem={({ item, index }) => (
           <View
             style={

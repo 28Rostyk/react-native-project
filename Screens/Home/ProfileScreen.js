@@ -5,39 +5,56 @@ import {
   StyleSheet,
   FlatList,
   Image,
-  ImageBackground,
   TouchableOpacity,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { db } from "../../firebase/config";
+
 import { AntDesign } from "@expo/vector-icons";
 import { EvilIcons } from "@expo/vector-icons";
-import { SimpleLineIcons } from "@expo/vector-icons";
+
+import { Feather } from "@expo/vector-icons";
 import {
   authRemoveUserImg,
   authAddUserImg,
 } from "../../redux/auth/auth-operations";
 import * as ImagePicker from "expo-image-picker";
+import { authSignOutUser } from "../../redux/auth/auth-operations";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  set,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
 
 const ProfileScreen = ({ navigation }) => {
   const [userPosts, setUserPosts] = useState([]);
   const { userId, nickName, userBgImage } = useSelector((state) => state.auth);
   const [userImg, setUserImg] = useState(null);
-  console.log(userPosts);
-  console.log(userBgImage);
-  console.log(userImg);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
-    getUserPosts();
+    getAllPostsUser();
   }, []);
 
-  const getUserPosts = async () => {
-    const q = query(collection(db, "posts"), where("userId", "==", userId));
-    await onSnapshot(q, (data) => {
-      setUserPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+  const getAllPostsUser = async () => {
+    const db = getDatabase();
+    const starCountRef = query(
+      ref(db, "posts"),
+      orderByChild("userId"),
+      equalTo(userId)
+    );
+
+    onValue(starCountRef, (snapshot) => {
+      const objectPosts = snapshot.val();
+      if (!objectPosts) {
+        return;
+      }
+      const allPostsFromServer = Object.values(objectPosts);
+      setUserPosts(allPostsFromServer);
     });
   };
 
@@ -49,13 +66,7 @@ const ProfileScreen = ({ navigation }) => {
       aspect: [4, 3],
       quality: 1,
     });
-
-    // await setUserImg(result.assets[0].uri);
-
     dispatch(authAddUserImg(result.assets[0].uri));
-    // setUserImage(result.assets[0].uri);
-
-    // result.assets[0].uri
   };
 
   const removeImage = () => {
@@ -71,20 +82,24 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={require("../../assets/image/PhotoBG.png")}
-      style={styles.ImageBackground}
-    >
-      <View style={styles.back}>
-        <View style={styles.backAvatar}>
-          {userBgImage && (
-            <Image
-              source={{ uri: userBgImage }}
-              style={{ width: 120, height: 120, borderRadius: 16 }}
-            />
-          )}
+    <View style={styles.container}>
+      <Image
+        style={styles.imageBg}
+        source={require("../../assets/image/PhotoBG.png")}
+      />
+      <View style={styles.form}>
+        <View style={styles.fotoUser}>
+          <Image
+            style={{
+              width: 120,
+              height: 120,
+              resizeMode: "contain",
+              borderRadius: 16,
+            }}
+            source={{ uri: userBgImage }}
+          />
           <TouchableOpacity
-            style={styles.btnAddOrClose}
+            style={styles.btnClose}
             onPress={userBgImage ? removeImage : pickImage}
           >
             {userBgImage ? (
@@ -94,164 +109,187 @@ const ProfileScreen = ({ navigation }) => {
             )}
           </TouchableOpacity>
         </View>
-
-        <Text style={styles.textTitle}>{nickName}</Text>
-
-        <FlatList
-          data={userPosts}
-          keyExtractor={(item, indx) => indx.toString()}
-          // keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <>
-              <View style={styles.postContainer}>
-                <Image source={{ uri: item.photo }} style={styles.imagePost} />
-                <View style={styles.postTextContainer}></View>
-                <View>
-                  <Text style={{ marginLeft: 16, fontSize: 16, marginTop: 8 }}>
-                    {item.comment}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    // justifyContent: "space-around",
-                    alignItems: "center",
-                    marginTop: 10,
-                    marginHorizontal: 19,
-                  }}
-                >
-                  <TouchableOpacity
-                    style={{ flexDirection: "row", alignItems: "center" }}
-                    onPress={() =>
-                      navigation.navigate("Коментарії", {
-                        postId: item.id,
-                        photoUri: item.photo,
-                      })
-                    }
-                  >
-                    <EvilIcons name="comment" size={30} color="#BDBDBD" />
-                    <Text
-                      style={{ marginLeft: 8, color: "#BDBDBD", fontSize: 16 }}
+        <TouchableOpacity style={styles.logOut}>
+          <Feather
+            name="log-out"
+            size={24}
+            color="#BDBDBD"
+            onPress={() => dispatch(authSignOutUser())}
+          />
+        </TouchableOpacity>
+        <View style={styles.userName}>
+          <Text style={styles.userNameTitle}>{nickName}</Text>
+        </View>
+        <View style={styles.flatList}>
+          <FlatList
+            data={userPosts}
+            keyExtractor={(item) => item.postId.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.postCard}>
+                <Image style={styles.postImage} source={{ uri: item.photo }} />
+                <Text style={styles.postName}>{item.comment}</Text>
+                <View style={styles.postInfo}>
+                  <View style={styles.commentsLikes}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate("Коментарії", {
+                          postId: item.postId,
+                          photoUri: item.photo,
+                        })
+                      }
                     >
-                      0
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginLeft: "auto",
-                      marginLeft: 27,
-                    }}
-                  >
-                    <AntDesign name="like2" size={24} color="#BDBDBD" />
-                    <Text
-                      style={{ marginLeft: 8, color: "#BDBDBD", fontSize: 16 }}
-                    >
-                      0
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginLeft: "auto",
-                    }}
-                    onPress={() =>
-                      navigation.navigate("Карта", { location: item.location })
-                    }
-                  >
-                    <SimpleLineIcons
-                      name="location-pin"
-                      size={24}
-                      color="#BDBDBD"
-                    />
-                    <Text
-                      style={{
-                        marginRight: 10,
-                        marginLeft: 8,
-                        color: "#212121",
-                        fontSize: 16,
-                        textDecorationLine: "underline",
-                      }}
-                    >
-                      {item.photoLocation}
-                    </Text>
-                  </TouchableOpacity>
+                      <View style={styles.postComments}>
+                        <EvilIcons name="comment" size={30} color="#BDBDBD" />
+                        <Text style={styles.quantityComments}>
+                          {item.comments
+                            ? Object.values(item.comments).length
+                            : "0"}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => createLike(item.postId)}>
+                      <View style={styles.postLikes}>
+                        <Feather name="thumbs-up" size={18} color="#FF6C00" />
+                        <Text style={styles.quantityLikes}>
+                          {item.likes ? Object.values(item.likes).length : "0"}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.postPlace}>
+                    <Feather name="map-pin" size={18} color="#BDBDBD" />
+                    <Text style={styles.placeName}>{item.photoLocation}</Text>
+                  </View>
                 </View>
               </View>
-            </>
-          )}
-        />
+            )}
+          />
+        </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 };
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  delDescr: {
-    backgroundColor: "#f00",
-    textAlign: "center",
-  },
-  ImageBackground: {
+  container: {
     flex: 1,
-    resizeMode: "cover",
+    backgroundColor: "red",
     justifyContent: "flex-end",
-    alignItems: "center",
   },
-  back: {
-    position: "relative",
+  imageBg: {
+    resizeMode: "cover",
+    position: "absolute",
+    top: 0,
     width: "100%",
-    minHeight: "80%",
-    marginHorizontal: 16,
+  },
+  form: {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    backgroundColor: "#fff",
-    alignItems: "center",
-  },
-  backAvatar: {
+    backgroundColor: "#FFFFFF",
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingTop: 92,
+    paddingBottom: 78,
     position: "absolute",
-    top: -60,
+    top: 147,
+    width: "100%",
+    height: "100%",
+  },
+  fotoUser: {
     width: 120,
     height: 120,
-    borderRadius: 16,
     backgroundColor: "#F6F6F6",
+    borderRadius: 16,
+    position: "absolute",
+    transform: [{ translateX: -50 }, { translateY: -60 }],
+    left: "50%",
+    zIndex: 5,
   },
-
-  btnAddOrClose: {
+  btnClose: {
     position: "absolute",
     right: 0,
     transform: [{ translateX: 12 }],
     bottom: 10,
-    zIndex: 10,
   },
-  textTitle: {
-    fontSize: 30,
-    color: "#212121",
+  userName: {
+    paddingLeft: 80,
+    paddingRight: 80,
     textAlign: "center",
-    marginTop: 92,
+  },
+  userNameTitle: {
     marginBottom: 33,
+    fontSize: 30,
+    textAlign: "center",
   },
-
-  postContainer: {
-    justifyContent: "center",
-    marginBottom: 10,
+  postCard: {
+    marginBottom: 35,
   },
-  imagePost: {
-    width: 343,
-    height: 240,
-    resizeMode: "cover",
-    marginHorizontal: 16,
-    borderRadius: 6,
-  },
-  postTextContainer: {
+  postImage: {
     width: "100%",
-    marginLeft: 8,
+    height: 240,
+    marginBottom: 8,
+    borderRadius: 8,
   },
-  postText: {
+  postName: {
     fontSize: 16,
+    fontWeight: "500",
+    fontFamily: "Roboto",
+    color: "#212121",
+    marginBottom: 11,
+  },
+  postInfo: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  commentsLikes: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  postComments: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  quantityComments: {
+    fontSize: 16,
+    fontWeight: "400",
+    fontFamily: "Roboto",
+    marginLeft: 9,
+    marginRight: 27,
+  },
+  postLikes: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  quantityLikes: {
+    fontWeight: "400",
+    fontFamily: "Roboto",
+    fontSize: 16,
+    marginLeft: 9,
+  },
+  placeName: {
+    fontSize: 16,
+    fontWeight: "400",
+    fontFamily: "Roboto",
+    color: "#212121",
+    marginLeft: 8,
+    textDecorationLine: "underline",
+  },
+  postPlace: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  logOut: {
+    position: "absolute",
+    top: 24,
+    right: 24,
+  },
+  flatList: {
+    paddingBottom: 150,
   },
 });
+//

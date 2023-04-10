@@ -52,36 +52,46 @@ export const useRoute = (isAuth) => {
       />
 
       <MainTab.Screen
-        options={{
+        options={({ navigation }) => ({
           tabBarIcon: ({ focused, size, color }) => (
             <SimpleLineIcons name="plus" size={24} color={color} />
           ),
           headerLeft: ({ focused, size, color }) => (
-            <AntDesign
-              style={{ marginLeft: 20 }}
-              name="arrowleft"
-              size={24}
-              color="black"
-            />
+            <TouchableOpacity onPress={() => navigation.navigate("Публікації")}>
+              <AntDesign
+                style={{ marginLeft: 20 }}
+                name="arrowleft"
+                size={24}
+                color="black"
+              />
+            </TouchableOpacity>
           ),
-        }}
+          tabBarStyle: { display: "none" },
+        })}
+        // options={{
+        //   tabBarIcon: ({ focused, size, color }) => (
+        //     <SimpleLineIcons name="plus" size={24} color={color} />
+        //   ),
+        //   headerLeft: ({ focused, size, color }) => (
+        //     <TouchableOpacity>
+        //       <AntDesign
+        //         style={{ marginLeft: 20 }}
+        //         name="arrowleft"
+        //         size={24}
+        //         color="black"
+        //       />
+        //     </TouchableOpacity>
+        //   ),
+        //   tabBarStyle: { display: "none" },
+        // }}
         name="Створити публікацію"
         component={CreatePostsScreen}
       />
       <MainTab.Screen
         options={{
+          headerShown: false,
           tabBarIcon: ({ focused, size, color }) => (
             <Ionicons name="md-person-outline" size={24} color={color} />
-          ),
-          headerRight: ({ focused, size, color }) => (
-            <TouchableOpacity onPress={() => dispatch(authSignOutUser())}>
-              <MaterialIcons
-                style={{ marginRight: 10 }}
-                name="logout"
-                size={24}
-                color="#BDBDBD"
-              />
-            </TouchableOpacity>
           ),
         }}
         name="Профіль"
