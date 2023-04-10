@@ -7,23 +7,65 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  Button,
 } from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 
+import { collection, doc, getDocs, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebase/config";
+import { auth } from "../../../firebase/config";
+import { useSelector } from "react-redux";
+
 const DefaultScreen = ({ route, navigation }) => {
   const [posts, setPosts] = useState([]);
+  // const [postId, setPostId] = useState("");
+  const [allComents, setAllComments] = useState([]);
+  const { userId, nickName, userBgImage } = useSelector((state) => state.auth);
+  console.log(userBgImage);
+  console.log(posts);
+  // console.log(postId);
+  console.log(allComents);
+
+  const getAllPosts = async () => {
+    await onSnapshot(collection(db, "posts"), (data) => {
+      setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      // setPostId(data.docs.map((doc) => doc.id));
+    });
+  };
+
+  // const getAllComments = async () => {
+  //   await onSnapshot(
+  //     collection(db, "posts", `${postId}`, "comments"),
+  //     (data) => {
+  //       setAllComments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+  //     }
+  //   );
+  // };
 
   useEffect(() => {
-    if (route.params) {
-      setPosts((prevPosts) => [...prevPosts, route.params]);
-    }
-  }, [route.params]);
+    getAllPosts();
+    // if (postId) {
+    //   getAllComments();
+    // }
+  }, []);
 
-  console.log(posts);
   return (
     <View style={styles.container}>
+      <View style={{ flexDirection: "row", marginTop: 32 }}>
+        <View style={styles.userAvatar}>
+          <Image
+            source={{ uri: userBgImage }}
+            style={{ width: 60, height: 60, borderRadius: 16 }}
+          />
+        </View>
+        <View style={styles.containerUserInfo}>
+          <Text style={{ fontSize: 13, fontWeight: "700" }}>{nickName}</Text>
+          <Text style={{ fontSize: 13, fontWeight: "400" }}>
+            {auth.currentUser.email}
+          </Text>
+        </View>
+      </View>
+
       <FlatList
         data={posts}
         keyExtractor={(item, indx) => indx.toString()}
@@ -32,6 +74,11 @@ const DefaultScreen = ({ route, navigation }) => {
             <View style={styles.postImageContainer}>
               <Image style={styles.postImage} source={{ uri: item.photo }} />
             </View>
+            <View>
+              <Text style={{ marginLeft: 23, marginTop: 8, fontSize: 16 }}>
+                {item.comment}
+              </Text>
+            </View>
             <View
               style={{
                 flexDirection: "row",
@@ -39,12 +86,16 @@ const DefaultScreen = ({ route, navigation }) => {
                 alignItems: "center",
                 marginTop: 10,
                 marginHorizontal: 19,
-                // justifyContent: "space-between",
               }}
             >
               <TouchableOpacity
                 style={{ flexDirection: "row", alignItems: "center" }}
-                onPress={() => navigation.navigate("Коментарії")}
+                onPress={() =>
+                  navigation.navigate("Коментарії", {
+                    postId: item.id,
+                    photoUri: item.photo,
+                  })
+                }
               >
                 <EvilIcons name="comment" size={30} color="#BDBDBD" />
                 <Text style={{ marginLeft: 8, color: "#BDBDBD", fontSize: 16 }}>
@@ -54,7 +105,9 @@ const DefaultScreen = ({ route, navigation }) => {
 
               <TouchableOpacity
                 style={{ flexDirection: "row", alignItems: "center" }}
-                onPress={() => navigation.navigate("Карта")}
+                onPress={() =>
+                  navigation.navigate("Карта", { location: item.location })
+                }
               >
                 <SimpleLineIcons
                   name="location-pin"
@@ -69,7 +122,7 @@ const DefaultScreen = ({ route, navigation }) => {
                     fontSize: 16,
                   }}
                 >
-                  Розташування
+                  {item.photoLocation}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -87,6 +140,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+
+  userAvatar: {
+    marginLeft: 16,
+  },
+
+  containerUserInfo: {
+    justifyContent: "center",
+    marginLeft: 8,
+  },
+
   postImageContainer: {
     justifyContent: "center",
     alignItems: "center",

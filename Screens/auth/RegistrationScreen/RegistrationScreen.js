@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   View,
-  ImageBackground,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -14,7 +13,8 @@ import {
   Keyboard,
   Image,
 } from "react-native";
-
+import { AntDesign } from "react-native-vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useDispatch } from "react-redux";
 import { authSignUpUser } from "../../../redux/auth/auth-operations";
 
@@ -23,13 +23,19 @@ import { initialState } from "./initialState";
 SplashScreen.preventAutoHideAsync();
 
 export default function RegistrationScreen({ navigation }) {
+  const [securePassword, setSecurePassword] = useState(true);
   const [isShowKeybord, setIsShowKeybord] = useState(false);
   const [state, setState] = useState(initialState);
   const [focused, setFocused] = useState("");
+  // const [userImage, setUserImage] = useState(null);
+  // console.log(userImage);
+
   const [fontsLoaded] = useFonts({
     Roboto: require("../../../assets/fonts/Roboto-Regular.ttf"),
   });
   const dispatch = useDispatch();
+
+  const toShowPassword = securePassword ? "Показать" : "Скрыть";
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
@@ -54,24 +60,73 @@ export default function RegistrationScreen({ navigation }) {
     setState(initialState);
   };
 
+  // const clickOnBackground = () => {
+  //   setIsShowKeyboard(false);
+  //   Keyboard.dismiss();
+  // };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    // setUserImage(result.assets[0].uri);
+    setState((prevState) => ({
+      ...prevState,
+      userImage: result.assets[0].uri,
+    }));
+  };
+
+  const removeImage = () => {
+    setState(null);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={touchableHide}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "android" ? "height" : "padding"}
-        onLayout={onLayoutRootView}
-      >
-        <ImageBackground
-          style={styles.image}
+      <View style={styles.container}>
+        <Image
+          style={styles.imageBg}
           source={require("../../../assets/image/PhotoBG.png")}
+        />
+        <KeyboardAvoidingView
+          // behavior={Platform.OS === "android" ? "height" : "padding"}
+          behavior={Platform.OS == "ios" ? "padding" : ""}
+          onLayout={onLayoutRootView}
         >
-          <View style={styles.formContainer}>
-            <View style={styles.imgContainer}>
+          <View
+            style={{
+              ...styles.form,
+              marginBottom: isShowKeybord ? -200 : 0,
+            }}
+          >
+            <View style={styles.fotoUser}>
+              <TouchableOpacity
+                style={styles.btnAddOrClose}
+                onPress={state.userImage ? removeImage : pickImage}
+              >
+                {!state.userImage ? (
+                  <AntDesign name="pluscircleo" size={24} color="#FF6C00" />
+                ) : (
+                  <AntDesign name="closecircleo" size={25} color="#E8E8E8" />
+                )}
+              </TouchableOpacity>
+              {state.userImage && (
+                <Image
+                  source={{ uri: state.userImage }}
+                  style={{ width: 120, height: 120, borderRadius: 16 }}
+                />
+              )}
+            </View>
+            {/* <View style={styles.imgContainer}>
               <Image
                 style={{ borderRadius: 16 }}
                 source={require("../../../assets/image/userImg.jpg")}
               />
-            </View>
+            </View> */}
             <View>
               <Text
                 style={{
@@ -131,6 +186,7 @@ export default function RegistrationScreen({ navigation }) {
               <TextInput
                 secureTextEntry={true}
                 placeholder="Пароль"
+                placeholderTextColor="#BDBDBD"
                 value={state.password}
                 style={{
                   ...styles.input,
@@ -138,6 +194,7 @@ export default function RegistrationScreen({ navigation }) {
                   borderWidth: 1,
                   borderColor: focused === "password" ? "#FF6C00" : "#FFF",
                 }}
+                secureTextEntry={securePassword}
                 onFocus={() => {
                   setIsShowKeybord(true);
                   setFocused("password");
@@ -149,6 +206,15 @@ export default function RegistrationScreen({ navigation }) {
                   setState((prevState) => ({ ...prevState, password: value }))
                 }
               />
+
+              <TouchableOpacity
+                style={styles.btnInInput}
+                onPress={() => {
+                  setSecurePassword(!securePassword);
+                }}
+              >
+                <Text style={styles.showPassword}>{toShowPassword}</Text>
+              </TouchableOpacity>
             </View>
             <TouchableOpacity
               style={styles.formBtn}
@@ -156,14 +222,17 @@ export default function RegistrationScreen({ navigation }) {
               onPress={handleSubmit}
             >
               <Text
-                style={{ color: "#FFFFFF", fontFamily: "Roboto", fontSize: 16 }}
+                style={{
+                  color: "#FFFFFF",
+                  fontFamily: "Roboto",
+                  fontSize: 16,
+                }}
               >
                 Зареєструватися
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{
-                marginBottom: isShowKeybord ? -115 : 78,
                 alignSelf: "center",
               }}
               onPress={() => navigation.navigate("Login")}
@@ -182,8 +251,8 @@ export default function RegistrationScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           </View>
-        </ImageBackground>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
@@ -192,6 +261,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    justifyContent: "flex-end",
+  },
+
+  imageBg: {
+    resizeMode: "cover",
+    position: "absolute",
+    top: 0,
+    width: "100%",
   },
 
   image: {
@@ -200,20 +277,41 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
 
-  formContainer: {
-    backgroundColor: "#FFFFFF",
+  form: {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
+    backgroundColor: "#FFFFFF",
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingBottom: 78,
   },
 
-  imgContainer: {
-    position: "absolute",
+  // imgContainer: {
+  //   position: "absolute",
+  //   width: 120,
+  //   height: 120,
+  //   top: -60,
+  //   left: 128,
+  //   backgroundColor: "#F6F6F6",
+  //   borderRadius: 16,
+  //   zIndex: 10,
+  // },
+
+  fotoUser: {
     width: 120,
     height: 120,
-    top: -60,
-    left: 128,
     backgroundColor: "#F6F6F6",
     borderRadius: 16,
+    position: "absolute",
+    transform: [{ translateX: -50 }, { translateY: -60 }],
+    left: "50%",
+    zIndex: 5,
+  },
+  btnAddOrClose: {
+    position: "absolute",
+    right: 0,
+    transform: [{ translateX: 12 }],
+    bottom: 10,
     zIndex: 10,
   },
 
@@ -246,5 +344,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginHorizontal: 16,
     borderRadius: 100,
+  },
+
+  btnInInput: {
+    position: "absolute",
+    top: "50%",
+    right: 30,
+    transform: [{ translateY: -10 }],
+  },
+  showPassword: {
+    color: "#1B4371",
   },
 });
